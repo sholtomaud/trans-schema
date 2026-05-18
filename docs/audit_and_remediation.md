@@ -22,7 +22,7 @@ This document outlines the audit of existing dependencies in the `nrds-server` r
 | `sea-lion` | Routing | Implement a simple router using `new URL(request.url).pathname`. |
 | `simple-cors` | CORS handling | Manually set `Access-Control-Allow-*` headers in a middleware function. |
 | `wraperr` | Error wrapping | Use standard try/catch blocks. |
-| `gfc-node` | GFC Client | (Used but missing from package.json) Replace with native `fetch` calls to the GFC API. |
+| `gfc-node` | GFC Client | (Used but missing from package.json) **REMOVED**. Replace GFC dependency with AWS DynamoDB. |
 
 ## Remediation Steps
 
@@ -35,8 +35,9 @@ This document outlines the audit of existing dependencies in the `nrds-server` r
     - Create a native `requestParser.ts` to replace `request-data`.
     - Create a native `responder.ts` to replace `retort`.
 3.  **Persistence Layer**:
-    - Refactor `server/persistence/gfc/` to use native `https` or `fetch` instead of `gfc-node`.
-    - Replace callback patterns with `Promises`.
+    - Replace all GFC-based persistence (`server/persistence/gfc/`) with AWS DynamoDB.
+    - Utilize VTL for direct APIGW-to-DynamoDB integration where possible.
+    - Use native Node.js AWS SDK (v3) in Lambdas where VTL is insufficient.
 4.  **Service Layer**:
     - Refactor `server/services/` to use `async/await`.
     - Replace `bcrypt` with `crypto.scrypt`.

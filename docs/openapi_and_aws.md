@@ -3,7 +3,7 @@
 This document outlines the plan to convert the NRDS server into an OpenAPI-compliant Schema Translation Service designed to run on AWS with a preference for runtimeless architecture.
 
 ## Architectural Mantra: "Runtimeless"
-- **Preference 1**: AWS API Gateway VTL (Velocity Mapping Templates) for direct integration where possible (e.g., Auth, Simple CRUD to DynamoDB/GFC).
+- **Preference 1**: AWS API Gateway VTL (Velocity Mapping Templates) for direct integration where possible (e.g., Auth, Simple CRUD to DynamoDB).
 - **Preference 2**: AWS Lambda (Node.js v26) only where VTL is insufficient.
 - **Preference 3**: Lambda Durable Functions are preferred over Step Functions for complex orchestration.
 - **Infrastructure**: All infrastructure defined via AWS CDK in TypeScript.
@@ -43,7 +43,7 @@ components:
 ## AWS Integration Strategy: VTL First
 
 1.  **VTL Mapping**:
-    - For simple pass-throughs to the GFC API or DynamoDB, use VTL templates in API Gateway to transform the incoming request body and headers.
+    - For simple pass-throughs to DynamoDB, use VTL templates in API Gateway to transform the incoming request body and headers.
     - Removes the need for Lambda execution for simple operations.
 2.  **Lambda Fallback**:
     - For complex logic (e.g., search, complex translations), use Lambda functions running Node.js v26.
