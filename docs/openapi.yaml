@@ -18,7 +18,7 @@ paths:
           default:
             statusCode: "200"
             responseTemplates:
-              application/json: "{\"message\": \"Login successful (Mock)\"}"
+              application/json: "{\"message\": \"Login via Cognito recommended (Mock)\"}"
   /accounts:
     post:
       summary: Create Account
@@ -34,6 +34,84 @@ paths:
             statusCode: "201"
             responseTemplates:
               application/json: "{\"message\": \"Account created (Mock)\"}"
+
+  /schemas:
+    get:
+      summary: List Schemas
+      security:
+        - CognitoAuthorizer: []
+      responses:
+        '200':
+          description: OK
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/Scan"
+        credentials: "${APIGW_ROLE_ARN}"
+        responses:
+          default:
+            statusCode: "200"
+        httpMethod: "POST"
+        type: "aws"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName": "${SCHEMAS_TABLE}"
+            }
+    post:
+      summary: Create Schema
+      security:
+        - CognitoAuthorizer: []
+      responses:
+        '201':
+          description: Created
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/PutItem"
+        credentials: "${APIGW_ROLE_ARN}"
+        responses:
+          default:
+            statusCode: "201"
+        httpMethod: "POST"
+        type: "aws"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName": "${SCHEMAS_TABLE}",
+              "Item": {
+                "schemaId": { "S": "$input.path('$.schemaId')" },
+                "definition": { "S": "$input.json('$.definition')" }
+              }
+            }
+
+  /schemas/{schemaId}:
+    get:
+      summary: Get Schema
+      parameters:
+        - name: schemaId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - CognitoAuthorizer: []
+      responses:
+        '200':
+          description: OK
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/GetItem"
+        credentials: "${APIGW_ROLE_ARN}"
+        responses:
+          default:
+            statusCode: "200"
+        httpMethod: "POST"
+        type: "aws"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName": "${SCHEMAS_TABLE}",
+              "Key": {
+                "schemaId": { "S": "$input.params('schemaId')" }
+              }
+            }
+
   /records/{schemaId}:
     get:
       summary: List Records
@@ -49,19 +127,18 @@ paths:
         '200':
           description: OK
       x-amazon-apigateway-integration:
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
+        uri: "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/Query"
+        credentials: "${APIGW_ROLE_ARN}"
         responses:
           default:
             statusCode: "200"
         passthroughBehavior: "when_no_match"
         httpMethod: "POST"
-        contentHandling: "CONVERT_TO_TEXT"
         type: "aws"
         requestTemplates:
           application/json: |
             {
-              "TableName": "RecordsTable",
+              "TableName": "${RECORDS_TABLE}",
               "KeyConditionExpression": "schemaId = :v1",
               "ExpressionAttributeValues": {
                 ":v1": {
@@ -83,24 +160,24 @@ paths:
         '201':
           description: Created
       x-amazon-apigateway-integration:
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem
+        uri: "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/PutItem"
+        credentials: "${APIGW_ROLE_ARN}"
         responses:
           default:
             statusCode: "201"
-        passthroughBehavior: "when_no_match"
         httpMethod: "POST"
         type: "aws"
         requestTemplates:
           application/json: |
             {
-              "TableName": "RecordsTable",
+              "TableName": "${RECORDS_TABLE}",
               "Item": {
                 "schemaId": { "S": "$input.params('schemaId')" },
-                "id": { "S": "$context.requestId" },
+                "id": { "S": "$input.path('$.id')" },
                 "data": { "S": "$input.json('$')" }
               }
             }
+
   /records/{schemaId}/{id}:
     get:
       summary: Get Record
@@ -121,18 +198,17 @@ paths:
         '200':
           description: OK
       x-amazon-apigateway-integration:
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/GetItem
+        uri: "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/GetItem"
+        credentials: "${APIGW_ROLE_ARN}"
         responses:
           default:
             statusCode: "200"
-        passthroughBehavior: "when_no_match"
         httpMethod: "POST"
         type: "aws"
         requestTemplates:
           application/json: |
             {
-              "TableName": "RecordsTable",
+              "TableName": "${RECORDS_TABLE}",
               "Key": {
                 "schemaId": { "S": "$input.params('schemaId')" },
                 "id": { "S": "$input.params('id')" }
@@ -157,18 +233,17 @@ paths:
         '200':
           description: OK
       x-amazon-apigateway-integration:
-        uri:
-          Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem
+        uri: "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/UpdateItem"
+        credentials: "${APIGW_ROLE_ARN}"
         responses:
           default:
             statusCode: "200"
-        passthroughBehavior: "when_no_match"
         httpMethod: "POST"
         type: "aws"
         requestTemplates:
           application/json: |
             {
-              "TableName": "RecordsTable",
+              "TableName": "${RECORDS_TABLE}",
               "Key": {
                 "schemaId": { "S": "$input.params('schemaId')" },
                 "id": { "S": "$input.params('id')" }
@@ -179,6 +254,55 @@ paths:
                 ":val": { "S": "$input.json('$')" }
               }
             }
+
+  /translations:
+    get:
+      summary: List Translations
+      security:
+        - CognitoAuthorizer: []
+      responses:
+        '200':
+          description: OK
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/Scan"
+        credentials: "${APIGW_ROLE_ARN}"
+        responses:
+          default:
+            statusCode: "200"
+        httpMethod: "POST"
+        type: "aws"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName": "${TRANSLATIONS_TABLE}"
+            }
+    post:
+      summary: Create Translation
+      security:
+        - CognitoAuthorizer: []
+      responses:
+        '201':
+          description: Created
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/PutItem"
+        credentials: "${APIGW_ROLE_ARN}"
+        responses:
+          default:
+            statusCode: "201"
+        httpMethod: "POST"
+        type: "aws"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName": "${TRANSLATIONS_TABLE}",
+              "Item": {
+                "translationId": { "S": "$input.path('$.translationId')" },
+                "sourceSchemaId": { "S": "$input.path('$.sourceSchemaId')" },
+                "targetSchemaId": { "S": "$input.path('$.targetSchemaId')" },
+                "definition": { "S": "$input.json('$.definition')" }
+              }
+            }
+
   /search:
     post:
       summary: Search Records
@@ -190,8 +314,7 @@ paths:
       x-amazon-apigateway-integration:
         type: "aws_proxy"
         httpMethod: "POST"
-        uri:
-          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SearchHandler.Arn}/invocations"
+        uri: "arn:aws:apigateway:${AWS_REGION}:lambda:path/2015-03-31/functions/${SEARCH_HANDLER_ARN}/invocations"
 
 components:
   securitySchemes:
@@ -203,4 +326,4 @@ components:
       x-amazon-apigateway-authorizer:
         type: cognito_user_pools
         providerARNs:
-          - Fn::GetAtt: [ UserPool, Arn ]
+          - "${USER_POOL_ARN}"

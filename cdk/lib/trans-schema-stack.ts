@@ -11,6 +11,8 @@ import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import * as fs from 'fs';
+import * as yaml from 'js-yaml';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,11 +22,6 @@ export class TransSchemaStack extends cdk.Stack {
     super(scope, id, props);
 
     // DynamoDB Tables
-    const accountsTable = new dynamodb.Table(this, 'AccountsTable', {
-      partitionKey: { name: 'accountId', type: dynamodb.AttributeType.STRING },
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-    });
-
     const recordsTable = new dynamodb.Table(this, 'RecordsTable', {
       partitionKey: { name: 'schemaId', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'id', type: dynamodb.AttributeType.STRING },
@@ -33,6 +30,16 @@ export class TransSchemaStack extends cdk.Stack {
 
     const schemasTable = new dynamodb.Table(this, 'SchemasTable', {
       partitionKey: { name: 'schemaId', type: dynamodb.AttributeType.STRING },
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const translationsTable = new dynamodb.Table(this, 'TranslationsTable', {
+      partitionKey: { name: 'translationId', type: dynamodb.AttributeType.STRING },
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const viewsTable = new dynamodb.Table(this, 'ViewsTable', {
+      partitionKey: { name: 'viewId', type: dynamodb.AttributeType.STRING },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
@@ -62,7 +69,7 @@ export class TransSchemaStack extends cdk.Stack {
 
     // Search Lambda
     const searchLambda = new nodejs.NodejsFunction(this, 'SearchHandler', {
-      runtime: lambda.Runtime.NODEJS_20_X, // Node.js 22 is not yet available in CDK stable, using 20
+      runtime: lambda.Runtime.NODEJS_20_X,
       entry: path.join(__dirname, '../../server/services/search.ts'),
       handler: 'handler',
       environment: {
@@ -71,10 +78,33 @@ export class TransSchemaStack extends cdk.Stack {
     });
     recordsTable.grantReadData(searchLambda);
 
+    // API Gateway Role for DynamoDB and Lambda
+    const apigwRole = new iam.Role(this, 'ApiGatewayRole', {
+      assumedBy: new iam.ServicePrincipal('apigateway.amazonaws.com'),
+    });
+    recordsTable.grantReadWriteData(apigwRole);
+    schemasTable.grantReadWriteData(apigwRole);
+    translationsTable.grantReadWriteData(apigwRole);
+    viewsTable.grantReadWriteData(apigwRole);
+    searchLambda.grantInvoke(apigwRole);
+
     // API Gateway (RestApi) from OpenAPI Spec
+    const openApiAssetPath = path.join(__dirname, '../../docs/openapi.yaml');
+    const rawOpenApi = fs.readFileSync(openApiAssetPath, 'utf8');
+
+    // Manual replacement as js-yaml is not installed and we want to keep it runtimeless
+    const processedOpenApi = rawOpenApi
+      .replace(/\${AWS_REGION}/g, this.region)
+      .replace(/\${APIGW_ROLE_ARN}/g, apigwRole.roleArn)
+      .replace(/\${RECORDS_TABLE}/g, recordsTable.tableName)
+      .replace(/\${SCHEMAS_TABLE}/g, schemasTable.tableName)
+      .replace(/\${TRANSLATIONS_TABLE}/g, translationsTable.tableName)
+      .replace(/\${SEARCH_HANDLER_ARN}/g, searchLambda.functionArn)
+      .replace(/\${USER_POOL_ARN}/g, userPool.userPoolArn);
+
     const api = new apigateway.SpecRestApi(this, 'TransSchemaApi', {
-      apiDefinition: apigateway.ApiDefinition.fromAsset(path.join(__dirname, '../../docs/openapi.yaml')),
-      deployOptions: { stageName: 'prod' },
+      apiDefinition: apigateway.ApiDefinition.fromInline(yaml.load(processedOpenApi)),
+      deployOptions: { stageName: 'prod' }
     });
 
     // CloudFront Distribution
