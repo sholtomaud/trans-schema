@@ -1,0 +1,46 @@
+{
+  "app": "node --loader ts-node/esm bin/cdk.ts",
+  "watch": {
+    "include": [
+      "**"
+    ],
+    "exclude": [
+      "README.md",
+      "cdk*.json",
+      "**/*.d.ts",
+      "**/*.js",
+      "tsconfig.json",
+      "package*.json",
+      "yarn.lock",
+      "node_modules",
+      "test"
+    ]
+  },
+  "context": {
+    "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
+    "@aws-cdk/core:stackRelativeExports": true,
+    "@aws-cdk/aws-rds:lowercaseDbIdentifier": true,
+    "@aws-cdk/aws-lambda:recognizeVersionProps": true,
+    "@aws-cdk/aws-lambda:recognizeLayerVersionProps": true,
+    "@aws-cdk/aws-cloudfront:defaultRootObjectInEdgeFunctions": true,
+    "@aws-cdk/aws-iam:minimizePolicies": true,
+    "@aws-cdk/core:validateHasDefaultProcessPolicy": true,
+    "@aws-cdk/aws-s3:minimizePaS3Policies": true,
+    "@aws-cdk/aws-iam:standardizedServicePrincipals": true,
+    "@aws-cdk/aws-kms:aliasNameRef": true,
+    "@aws-cdk/aws-autoscaling:generateLaunchTemplateInsteadOfLaunchConfig": true,
+    "@aws-cdk/core:includePrefixInUniqueNameGeneration": true,
+    "@aws-cdk/aws-efs:denyAnonymousAccess": true,
+    "@aws-cdk/aws-iam:noModifyManagedPolicy": true,
+    "@aws-cdk/aws-kms:reduceRequiredPermissionsForAccountAccess": true,
+    "@aws-cdk/aws-s3:createDefaultLoggingPolicy": true,
+    "@aws-cdk/aws-sns-subscriptions:restrictSqsDescryption": true,
+    "@aws-cdk/aws-apigateway:disableCloudWatchRole": true,
+    "@aws-cdk/core:enablePartitionLiterals": true,
+    "@aws-cdk/aws-ec2:uniqueImdsRequirementName": true,
+    "@aws-cdk/aws-s3:keepNotificationCloudFormationStack": false,
+    "@aws-cdk/aws-iam:ifAnyActionForServiceKey": true,
+    "@aws-cdk/aws-ec2:launchTemplateDefaultUserDataStrategy": true,
+    "@aws-cdk/aws-stepfunctions-tasks:enableNodejsSdkV3": true
+  }
+}

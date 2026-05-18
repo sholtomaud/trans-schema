@@ -1,9 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
+    <title>Trans-Schema</title>
+    <script src="https://cdn.jsdelivr.net/npm/amazon-cognito-identity-js@6.3.1/dist/amazon-cognito-identity.min.js"></script>
 </head>
 <body>
     <h1>Login: </h1>
+    <form id="loginForm">
+        <input type="text" id="username" placeholder="Username" />
+        <input type="password" id="password" placeholder="Password" />
+        <button type="submit">Login</button>
+    </form>
+    <div id="status"></div>
+    <script>
+        // These would be injected by the deployment or fetched from a config endpoint
+        const POOL_DATA = {
+            UserPoolId: 'USER_POOL_ID',
+            ClientId: 'USER_POOL_CLIENT_ID'
+        };
+
+        const userPool = new AmazonCognitoIdentity.CognitoUserPool(POOL_DATA);
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const authenticationData = { Username: username, Password: password };
+            const authenticationDetails = new AmazonCognitoIdentity.AuthenticationDetails(authenticationData);
+            const userData = { Username: username, Pool: userPool };
+            const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData);
+
+            cognitoUser.authenticateUser(authenticationDetails, {
+                onSuccess: (result) => {
+                    const accessToken = result.getAccessToken().getJwtToken();
+                    document.getElementById('status').innerText = 'Login successful';
+                    localStorage.setItem('accessToken', accessToken);
+                },
+                onFailure: (err) => {
+                    document.getElementById('status').innerText = 'Login failed: ' + err.message;
+                }
+            });
+        });
+    </script>
 </body>
 </html>
