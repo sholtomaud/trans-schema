@@ -2,6 +2,8 @@
 
 This document outlines the audit of existing dependencies in the `nrds-server` repository and provides a plan to replace them with native Node.js and TypeScript functionality.
 
+**Target Runtime:** Node.js v26+ (utilizing native TypeScript support without additional switches or options).
+
 ## Dependency Audit
 
 | Dependency | Purpose | Native Replacement Strategy |
@@ -24,9 +26,9 @@ This document outlines the audit of existing dependencies in the `nrds-server` r
 
 ## Remediation Steps
 
-1.  **TypeScript Initialization**:
-    - Initialize TypeScript (`tsconfig.json`).
-    - Define core interfaces for `Account`, `Site`, `Menu`, and `Control`.
+1.  **TypeScript Configuration**:
+    - Configure for Node.js v26 native TypeScript support.
+    - Define core interfaces for the Schema Translation Service (Account, Site, Menu, and Control).
 2.  **Core Utilities**:
     - Create a native `logger.ts`.
     - Create a native `router.ts` to replace `sea-lion`.
