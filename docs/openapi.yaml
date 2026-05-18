@@ -1,0 +1,206 @@
+openapi: 3.0.3
+info:
+  title: Trans-Schema API
+  description: Generic Schema Translation Service
+  version: 1.0.0
+paths:
+  /login:
+    post:
+      summary: User Login
+      responses:
+        '200':
+          description: OK
+      x-amazon-apigateway-integration:
+        type: "mock"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        responses:
+          default:
+            statusCode: "200"
+            responseTemplates:
+              application/json: "{\"message\": \"Login successful (Mock)\"}"
+  /accounts:
+    post:
+      summary: Create Account
+      responses:
+        '201':
+          description: Created
+      x-amazon-apigateway-integration:
+        type: "mock"
+        requestTemplates:
+          application/json: "{\"statusCode\": 201}"
+        responses:
+          default:
+            statusCode: "201"
+            responseTemplates:
+              application/json: "{\"message\": \"Account created (Mock)\"}"
+  /records/{schemaId}:
+    get:
+      summary: List Records
+      parameters:
+        - name: schemaId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - CognitoAuthorizer: []
+      responses:
+        '200':
+          description: OK
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/Query
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName": "RecordsTable",
+              "KeyConditionExpression": "schemaId = :v1",
+              "ExpressionAttributeValues": {
+                ":v1": {
+                  "S": "$input.params('schemaId')"
+                }
+              }
+            }
+    post:
+      summary: Create Record
+      parameters:
+        - name: schemaId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - CognitoAuthorizer: []
+      responses:
+        '201':
+          description: Created
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/PutItem
+        responses:
+          default:
+            statusCode: "201"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "aws"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName": "RecordsTable",
+              "Item": {
+                "schemaId": { "S": "$input.params('schemaId')" },
+                "id": { "S": "$context.requestId" },
+                "data": { "S": "$input.json('$')" }
+              }
+            }
+  /records/{schemaId}/{id}:
+    get:
+      summary: Get Record
+      parameters:
+        - name: schemaId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - CognitoAuthorizer: []
+      responses:
+        '200':
+          description: OK
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/GetItem
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "aws"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName": "RecordsTable",
+              "Key": {
+                "schemaId": { "S": "$input.params('schemaId')" },
+                "id": { "S": "$input.params('id')" }
+              }
+            }
+    put:
+      summary: Update Record
+      parameters:
+        - name: schemaId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - CognitoAuthorizer: []
+      responses:
+        '200':
+          description: OK
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:dynamodb:action/UpdateItem
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        type: "aws"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName": "RecordsTable",
+              "Key": {
+                "schemaId": { "S": "$input.params('schemaId')" },
+                "id": { "S": "$input.params('id')" }
+              },
+              "UpdateExpression": "set #d = :val",
+              "ExpressionAttributeNames": { "#d": "data" },
+              "ExpressionAttributeValues": {
+                ":val": { "S": "$input.json('$')" }
+              }
+            }
+  /search:
+    post:
+      summary: Search Records
+      security:
+        - CognitoAuthorizer: []
+      responses:
+        '200':
+          description: OK
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SearchHandler.Arn}/invocations"
+
+components:
+  securitySchemes:
+    CognitoAuthorizer:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: cognito_user_pools
+      x-amazon-apigateway-authorizer:
+        type: cognito_user_pools
+        providerARNs:
+          - Fn::GetAtt: [ UserPool, Arn ]
