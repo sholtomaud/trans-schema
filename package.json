@@ -1,0 +1,33 @@
+{
+  "name": "nrds-server",
+  "version": "1.0.0",
+  "description": "Basic server app using GFC to accompany the NRDS Client app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@bitbucket.org:nrds/nrds-server.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^0.8.5",
+    "bunyan": "^1.5.1",
+    "crypto": "0.0.3",
+    "dion": "^1.0.2",
+    "file-server": "^1.0.5",
+    "flat-merge-n": "^1.0.1",
+    "generic-errors": "^2.0.0",
+    "jayschema": "^0.3.1",
+    "jayschema-error-messages": "^1.0.3",
+    "kgo": "^3.1.2",
+    "request": "^2.64.0",
+    "request-data": "^1.2.0",
+    "retort": "^1.0.1",
+    "sea-lion": "^1.0.5",
+    "simple-cors": "^1.1.1",
+    "wraperr": "^1.0.1"
+  }
+}

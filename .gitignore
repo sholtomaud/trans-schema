@@ -1,0 +1,12 @@
+server/config/local.js
+node_modules
+coverage
+*.log
+.jshintignore
+.jshintrc
+.gfcLogin
+allrecords.json
+NOTES.md
+.DS_Store
+.idea
+.vscode
