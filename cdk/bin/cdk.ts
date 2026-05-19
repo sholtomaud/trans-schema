@@ -1,9 +1,15 @@
 #!/usr/bin/env node
 import 'source-map-support/register.js';
 import * as cdk from 'aws-cdk-lib';
-import { TransSchemaStack } from '../lib/trans-schema-stack.js';
+import { TransSchemaApiStack } from '../lib/api-stack.ts';
+import { TransSchemaWebsiteStack } from '../lib/website-stack.ts';
 
 const app = new cdk.App();
-new TransSchemaStack(app, 'TransSchemaStack', {
-  env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+const env = { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION };
+
+const apiStack = new TransSchemaApiStack(app, 'TransSchemaApiStack', { env });
+
+new TransSchemaWebsiteStack(app, 'TransSchemaWebsiteStack', {
+  env,
+  api: apiStack.api,
 });
