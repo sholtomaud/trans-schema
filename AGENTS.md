@@ -1,4 +1,4 @@
-# Agent Instructions - NRDS Server
+# Agent Instructions - Trans-schema
 
 ## Architectural Mantra: "Runtimeless"
 Our primary goal is to minimize runtimes. Favor managed services and configuration over custom code execution.
