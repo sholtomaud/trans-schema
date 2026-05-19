@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "npm run test:infra && npm run test:e2e:frontend && npm run test:e2e:api",
-    "test:infra": "node --experimental-strip-types --test tests/infra/*.test.ts",
-    "test:e2e:api": "node --experimental-strip-types --test tests/e2e/*.test.ts",
+    "test:infra": "node --test tests/infra/*.test.ts",
+    "test:e2e:api": "node --test tests/e2e/*.test.ts",
     "test:e2e:frontend": "playwright test"
   },
   "devDependencies": {
@@ -18,13 +18,10 @@
     "@types/node": "^20.0.0",
     "aws-cdk-lib": "^2.100.0",
     "constructs": "^10.0.0",
-    "http-server": "^14.1.1",
     "js-yaml": "^4.1.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "jsonschema": "^1.5.0",
-    "source-map-support": "^0.5.21"
   }
 }

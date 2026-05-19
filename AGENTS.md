@@ -9,7 +9,7 @@ Our primary goal is to minimize runtimes. Favor managed services and configurati
 3.  **Native AWS Auth**: Use native API Gateway/Cognito integration for authentication and login. Avoid custom Lambda-based auth logic unless strictly necessary.
 
 ### Runtime Environment:
-- **Node.js v26+**: All code must target Node.js v26, utilizing its native TypeScript support. No extra build steps or switches for TS execution.
+- **Node.js v25+**: All code must target Node.js v25, utilizing its native TypeScript support. No extra build steps or switches for TS execution.
 - **Native Only**: No external npm dependencies unless absolutely unavoidable. Use built-in Node.js modules (`crypto`, `fetch`, `http`, `fs`, etc.).
 
 ### Infrastructure as Code:
