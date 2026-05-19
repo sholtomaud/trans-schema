@@ -4,9 +4,14 @@
   "description": "Basic server app using GFC to accompany the NRDS Client app",
   "type": "module",
   "scripts": {
-    "test": "node --experimental-strip-types --test server/tests/*.ts"
+    "test": "npm run test:infra && npm run test:e2e:frontend && npm run test:e2e:api",
+    "test:infra": "node --experimental-strip-types --test tests/infra/*.test.ts",
+    "test:e2e:api": "node --experimental-strip-types --test tests/e2e/*.test.ts",
+    "test:e2e:frontend": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "http-server": "^14.1.1",
     "@aws-sdk/client-dynamodb": "^3.0.0",
     "@aws-sdk/lib-dynamodb": "^3.0.0",
     "@types/aws-lambda": "^8.10.0",

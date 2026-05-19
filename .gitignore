@@ -11,3 +11,5 @@ NOTES.md
 .idea
 .vscode
 cdk.out/
+playwright-report/
+test-results/

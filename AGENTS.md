@@ -14,3 +14,15 @@ Our primary goal is to minimize runtimes. Favor managed services and configurati
 
 ### Infrastructure as Code:
 - **AWS CDK**: Use TypeScript-based AWS CDK for all infrastructure definitions.
+
+## Testing Strategy: TDD & E2E
+We follow a Test-Driven Development (TDD) approach. Write your tests before implementing the logic.
+
+### 1. Infrastructure Testing (CDK Assertions)
+- Every CDK stack must have corresponding tests using `aws-cdk-lib/assertions`.
+- Verify resource types, properties, and relationships (e.g., IAM roles, DynamoDB tables, API Gateway integrations).
+
+### 2. End-to-End (E2E) Testing
+- **API E2E**: Use the native Node.js test runner and `fetch` to verify API contracts and VTL logic against deployed or simulated endpoints.
+- **Frontend E2E**: Use Playwright for all UI-driven testing. Ensure core flows like Authentication and CRUD operations are fully covered.
+- **CI Integration**: All tests must pass in GitHub Actions before merging.
