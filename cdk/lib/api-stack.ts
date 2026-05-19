@@ -7,7 +7,6 @@ import { Construct } from 'constructs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import * as fs from 'fs';
-import * as yaml from 'js-yaml';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -67,7 +66,7 @@ export class TransSchemaApiStack extends cdk.Stack {
     viewsTable.grantReadWriteData(apigwRole);
 
     // API Gateway (RestApi) from OpenAPI Spec
-    const openApiAssetPath = path.join(__dirname, '../../docs/openapi.yaml');
+    const openApiAssetPath = path.join(__dirname, '../../docs/openapi.json');
     const rawOpenApi = fs.readFileSync(openApiAssetPath, 'utf8');
 
     const processedOpenApi = rawOpenApi
@@ -79,7 +78,7 @@ export class TransSchemaApiStack extends cdk.Stack {
       .replace(/\${USER_POOL_ARN}/g, userPool.userPoolArn);
 
     this.api = new apigateway.SpecRestApi(this, 'TransSchemaApi', {
-      apiDefinition: apigateway.ApiDefinition.fromInline(yaml.load(processedOpenApi)),
+      apiDefinition: apigateway.ApiDefinition.fromInline(JSON.parse(processedOpenApi)),
       deployOptions: { stageName: 'prod' }
     });
 

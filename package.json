@@ -4,21 +4,20 @@
   "description": "Basic server app using GFC to accompany the NRDS Client app",
   "type": "module",
   "scripts": {
-    "test": "node --experimental-strip-types --test server/tests/*.ts"
+    "test": "npm run test:infra && npm run test:e2e:frontend && npm run test:e2e:api",
+    "test:infra": "node --test tests/infra/*.test.ts",
+    "test:e2e:api": "node --test tests/e2e/*.test.ts",
+    "test:e2e:frontend": "playwright test"
   },
   "devDependencies": {
     "@aws-sdk/client-dynamodb": "^3.0.0",
     "@aws-sdk/lib-dynamodb": "^3.0.0",
+    "@playwright/test": "^1.40.0",
     "@types/aws-lambda": "^8.10.0",
-    "@types/js-yaml": "^4.0.5",
     "@types/node": "^20.0.0",
     "aws-cdk-lib": "^2.100.0",
-    "constructs": "^10.0.0",
-    "js-yaml": "^4.1.0",
-    "ts-node": "^10.9.1",
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "source-map-support": "^0.5.21"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "app": "node --loader ts-node/esm bin/cdk.ts",
+  "app": "node bin/cdk.ts",
   "watch": {
     "include": [
       "**"
