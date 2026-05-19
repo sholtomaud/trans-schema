@@ -23,6 +23,8 @@ We follow a Test-Driven Development (TDD) approach. Write your tests before impl
 - Verify resource types, properties, and relationships (e.g., IAM roles, DynamoDB tables, API Gateway integrations).
 
 ### 2. End-to-End (E2E) Testing
-- **API E2E**: Use the native Node.js test runner and `fetch` to verify API contracts and VTL logic against deployed or simulated endpoints.
+- **API E2E**: Use the native Node.js test runner and `fetch` to verify API contracts and VTL logic.
+    - These tests require an `API_URL` environment variable (e.g., `API_URL=https://api.example.com npm run test:e2e:api`).
+    - They are skipped in CI by default until a target environment is available.
 - **Frontend E2E**: Use Playwright for all UI-driven testing. Ensure core flows like Authentication and CRUD operations are fully covered.
 - **CI Integration**: All tests must pass in GitHub Actions before merging.
