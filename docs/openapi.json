@@ -1,0 +1,423 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Trans-Schema API",
+    "description": "Generic Schema Translation Service",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/login": {
+      "post": {
+        "summary": "User Login",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "type": "mock",
+          "requestTemplates": {
+            "application/json": "{\"statusCode\": 200}"
+          },
+          "responses": {
+            "default": {
+              "statusCode": "200",
+              "responseTemplates": {
+                "application/json": "{\"message\": \"Login via Cognito recommended (Mock)\"}"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/accounts": {
+      "post": {
+        "summary": "Create Account",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "type": "mock",
+          "requestTemplates": {
+            "application/json": "{\"statusCode\": 201}"
+          },
+          "responses": {
+            "default": {
+              "statusCode": "201",
+              "responseTemplates": {
+                "application/json": "{\"message\": \"Account created (Mock)\"}"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/schemas": {
+      "get": {
+        "summary": "List Schemas",
+        "security": [
+          {
+            "CognitoAuthorizer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "uri": "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/Scan",
+          "credentials": "${APIGW_ROLE_ARN}",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "httpMethod": "POST",
+          "type": "aws",
+          "requestTemplates": {
+            "application/json": "{\n  \"TableName\": \"${SCHEMAS_TABLE}\"\n}\n"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Schema",
+        "security": [
+          {
+            "CognitoAuthorizer": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "uri": "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/PutItem",
+          "credentials": "${APIGW_ROLE_ARN}",
+          "responses": {
+            "default": {
+              "statusCode": "201"
+            }
+          },
+          "httpMethod": "POST",
+          "type": "aws",
+          "requestTemplates": {
+            "application/json": "{\n  \"TableName\": \"${SCHEMAS_TABLE}\",\n  \"Item\": {\n    \"schemaId\": { \"S\": \"$input.path('$.schemaId')\" },\n    \"definition\": { \"S\": \"$input.json('$.definition')\" }\n  }\n}\n"
+          }
+        }
+      }
+    },
+    "/schemas/{schemaId}": {
+      "get": {
+        "summary": "Get Schema",
+        "parameters": [
+          {
+            "name": "schemaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "CognitoAuthorizer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "uri": "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/GetItem",
+          "credentials": "${APIGW_ROLE_ARN}",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "httpMethod": "POST",
+          "type": "aws",
+          "requestTemplates": {
+            "application/json": "{\n  \"TableName\": \"${SCHEMAS_TABLE}\",\n  \"Key\": {\n    \"schemaId\": { \"S\": \"$input.params('schemaId')\" }\n  }\n}\n"
+          }
+        }
+      }
+    },
+    "/records/{schemaId}": {
+      "get": {
+        "summary": "List Records",
+        "parameters": [
+          {
+            "name": "schemaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "CognitoAuthorizer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "uri": "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/Query",
+          "credentials": "${APIGW_ROLE_ARN}",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "passthroughBehavior": "when_no_match",
+          "httpMethod": "POST",
+          "type": "aws",
+          "requestTemplates": {
+            "application/json": "{\n  \"TableName\": \"${RECORDS_TABLE}\",\n  \"KeyConditionExpression\": \"schemaId = :v1\",\n  \"ExpressionAttributeValues\": {\n    \":v1\": {\n      \"S\": \"$input.params('schemaId')\"\n    }\n  }\n}\n"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Record",
+        "parameters": [
+          {
+            "name": "schemaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "CognitoAuthorizer": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "uri": "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/PutItem",
+          "credentials": "${APIGW_ROLE_ARN}",
+          "responses": {
+            "default": {
+              "statusCode": "201"
+            }
+          },
+          "httpMethod": "POST",
+          "type": "aws",
+          "requestTemplates": {
+            "application/json": "{\n  \"TableName\": \"${RECORDS_TABLE}\",\n  \"Item\": {\n    \"schemaId\": { \"S\": \"$input.params('schemaId')\" },\n    \"id\": { \"S\": \"$input.path('$.id')\" },\n    \"data\": { \"S\": \"$input.json('$')\" }\n  }\n}\n"
+          }
+        }
+      }
+    },
+    "/records/{schemaId}/{id}": {
+      "get": {
+        "summary": "Get Record",
+        "parameters": [
+          {
+            "name": "schemaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "CognitoAuthorizer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "uri": "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/GetItem",
+          "credentials": "${APIGW_ROLE_ARN}",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "httpMethod": "POST",
+          "type": "aws",
+          "requestTemplates": {
+            "application/json": "{\n  \"TableName\": \"${RECORDS_TABLE}\",\n  \"Key\": {\n    \"schemaId\": { \"S\": \"$input.params('schemaId')\" },\n    \"id\": { \"S\": \"$input.params('id')\" }\n  }\n}\n"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Record",
+        "parameters": [
+          {
+            "name": "schemaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "CognitoAuthorizer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "uri": "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/UpdateItem",
+          "credentials": "${APIGW_ROLE_ARN}",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "httpMethod": "POST",
+          "type": "aws",
+          "requestTemplates": {
+            "application/json": "{\n  \"TableName\": \"${RECORDS_TABLE}\",\n  \"Key\": {\n    \"schemaId\": { \"S\": \"$input.params('schemaId')\" },\n    \"id\": { \"S\": \"$input.params('id')\" }\n  },\n  \"UpdateExpression\": \"set #d = :val\",\n  \"ExpressionAttributeNames\": { \"#d\": \"data\" },\n  \"ExpressionAttributeValues\": {\n    \":val\": { \"S\": \"$input.json('$')\" }\n  }\n}\n"
+          }
+        }
+      }
+    },
+    "/translations": {
+      "get": {
+        "summary": "List Translations",
+        "security": [
+          {
+            "CognitoAuthorizer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "uri": "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/Scan",
+          "credentials": "${APIGW_ROLE_ARN}",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "httpMethod": "POST",
+          "type": "aws",
+          "requestTemplates": {
+            "application/json": "{\n  \"TableName\": \"${TRANSLATIONS_TABLE}\"\n}\n"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Translation",
+        "security": [
+          {
+            "CognitoAuthorizer": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "uri": "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/PutItem",
+          "credentials": "${APIGW_ROLE_ARN}",
+          "responses": {
+            "default": {
+              "statusCode": "201"
+            }
+          },
+          "httpMethod": "POST",
+          "type": "aws",
+          "requestTemplates": {
+            "application/json": "{\n  \"TableName\": \"${TRANSLATIONS_TABLE}\",\n  \"Item\": {\n    \"translationId\": { \"S\": \"$input.path('$.translationId')\" },\n    \"sourceSchemaId\": { \"S\": \"$input.path('$.sourceSchemaId')\" },\n    \"targetSchemaId\": { \"S\": \"$input.path('$.targetSchemaId')\" },\n    \"definition\": { \"S\": \"$input.json('$.definition')\" }\n  }\n}\n"
+          }
+        }
+      }
+    },
+    "/search": {
+      "post": {
+        "summary": "Search Records",
+        "security": [
+          {
+            "CognitoAuthorizer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "x-amazon-apigateway-integration": {
+          "uri": "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/Scan",
+          "credentials": "${APIGW_ROLE_ARN}",
+          "responses": {
+            "default": {
+              "statusCode": "200"
+            }
+          },
+          "httpMethod": "POST",
+          "type": "aws",
+          "requestTemplates": {
+            "application/json": "{\n  \"TableName\": \"${RECORDS_TABLE}\",\n  \"FilterExpression\": \"schemaId = :s AND contains(#d, :q)\",\n  \"ExpressionAttributeNames\": { \"#d\": \"data\" },\n  \"ExpressionAttributeValues\": {\n    \":s\": { \"S\": \"$input.path('$.schemaId')\" },\n    \":q\": { \"S\": \"$input.path('$.query')\" }\n  }\n}\n"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "CognitoAuthorizer": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "x-amazon-apigateway-authtype": "cognito_user_pools",
+        "x-amazon-apigateway-authorizer": {
+          "type": "cognito_user_pools",
+          "providerARNs": [
+            "${USER_POOL_ARN}"
+          ]
+        }
+      }
+    }
+  }
+}
