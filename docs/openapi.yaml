@@ -312,9 +312,24 @@ paths:
         '200':
           description: OK
       x-amazon-apigateway-integration:
-        type: "aws_proxy"
+        uri: "arn:aws:apigateway:${AWS_REGION}:dynamodb:action/Scan"
+        credentials: "${APIGW_ROLE_ARN}"
+        responses:
+          default:
+            statusCode: "200"
         httpMethod: "POST"
-        uri: "arn:aws:apigateway:${AWS_REGION}:lambda:path/2015-03-31/functions/${SEARCH_HANDLER_ARN}/invocations"
+        type: "aws"
+        requestTemplates:
+          application/json: |
+            {
+              "TableName": "${RECORDS_TABLE}",
+              "FilterExpression": "schemaId = :s AND contains(#d, :q)",
+              "ExpressionAttributeNames": { "#d": "data" },
+              "ExpressionAttributeValues": {
+                ":s": { "S": "$input.path('$.schemaId')" },
+                ":q": { "S": "$input.path('$.query')" }
+              }
+            }
 
 components:
   securitySchemes:

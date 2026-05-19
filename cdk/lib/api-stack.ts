@@ -70,7 +70,6 @@ export class TransSchemaApiStack extends cdk.Stack {
     const openApiAssetPath = path.join(__dirname, '../../docs/openapi.yaml');
     const rawOpenApi = fs.readFileSync(openApiAssetPath, 'utf8');
 
-    // Manual replacement as js-yaml is not installed and we want to keep it runtimeless
     const processedOpenApi = rawOpenApi
       .replace(/\${AWS_REGION}/g, this.region)
       .replace(/\${APIGW_ROLE_ARN}/g, apigwRole.roleArn)
